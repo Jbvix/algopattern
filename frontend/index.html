@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lotofácil Predictor</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="icon">🍀</span>
+    <span>LotoPredictor</span>
+  </div>
+  <div class="header-info">
+    <span id="sync-status" style="font-size:0.85rem;color:var(--text2)">
+      <span class="status-dot"></span>
+      <span id="status-text">Carregando...</span>
+    </span>
+    <button class="sync-btn" id="sync-btn" onclick="triggerSync()">⟳ Sincronizar</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- KPI Cards -->
+  <div class="cards-row" id="kpi-cards">
+    <div class="card">
+      <div class="card-label">Total de Sorteios</div>
+      <div class="card-value" id="kpi-total">—</div>
+      <div class="card-sub">desde 2003</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Último Concurso</div>
+      <div class="card-value" id="kpi-concurso">—</div>
+      <div class="card-sub" id="kpi-data">—</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Próximo Sorteio</div>
+      <div class="card-value countdown" id="kpi-countdown">—</div>
+      <div class="card-sub" id="kpi-next-date">Atualiza ao sincronizar</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Soma Média</div>
+      <div class="card-value" id="kpi-mean">—</div>
+      <div class="card-sub" id="kpi-mean-sub">desvio ±—</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Pares / Ímpares</div>
+      <div class="card-value" id="kpi-even">—</div>
+      <div class="card-sub" id="kpi-odd">—</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('dashboard', this)">📊 Dashboard</button>
+    <button class="tab-btn" onclick="switchTab('predictions', this)">🎯 Apostas</button>
+    <button class="tab-btn" onclick="switchTab('history', this)">📜 Histórico</button>
+    <button class="tab-btn" onclick="switchTab('wolfram', this)">🔬 Wolfram</button>
+  </div>
+
+  <!-- ─── TAB: Dashboard ──────────────────────── -->
+  <div id="tab-dashboard" class="tab-panel active">
+
+    <div class="section-title">🌡️ Números Quentes &amp; Frios</div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#ff5252"></div> Muito Quente</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ff8a65"></div> Quente</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--surface2);border:1px solid var(--border)"></div> Neutro</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#448aff"></div> Frio</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ffab40"></div> Aguardado</div>
+    </div>
+    <div class="balls-row" id="all-balls"></div>
+
+    <div class="section-title">📈 Último Resultado</div>
+    <div class="balls-row" id="last-draw-balls"></div>
+
+    <div class="charts-grid">
+
+      <!-- Frequency bar chart -->
+      <div class="chart-card" style="grid-column: span 2;">
+        <h3>Frequência Total por Dezena</h3>
+        <div class="chart-container-tall">
+          <canvas id="chart-freq"></canvas>
+        </div>
+      </div>
+
+      <!-- Even/Odd doughnut -->
+      <div class="chart-card">
+        <h3>Distribuição Par / Ímpar</h3>
+        <div class="chart-container">
+          <canvas id="chart-evenodd"></canvas>
+        </div>
+      </div>
+
+      <!-- Sum histogram -->
+      <div class="chart-card">
+        <h3>Distribuição da Soma dos Sorteios</h3>
+        <div class="chart-container">
+          <canvas id="chart-sum"></canvas>
+        </div>
+      </div>
+
+      <!-- Decade radar -->
+      <div class="chart-card">
+        <h3>Distribuição por Dezenas (Grupos de 5)</h3>
+        <div class="chart-container">
+          <canvas id="chart-decade"></canvas>
+        </div>
+      </div>
+
+      <!-- Recent frequency trend -->
+      <div class="chart-card">
+        <h3>Frequência Recente (Últimos 20 Sorteios)</h3>
+        <div class="chart-container">
+          <canvas id="chart-recent"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Heatmap 5x5 -->
+    <div class="section-title">🗺️ Mapa de Calor (Grade 5×5)</div>
+    <div class="card" style="margin-bottom:24px">
+      <div class="heatmap-grid" id="heatmap"></div>
+    </div>
+
+    <!-- Top pairs & trios -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>🔗 Top 20 Pares Mais Frequentes</h3>
+        <div class="pairs-list" id="pairs-list"></div>
+      </div>
+      <div class="chart-card">
+        <h3>🔺 Top 15 Trios Mais Frequentes</h3>
+        <div class="pairs-list" id="trios-list"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ─── TAB: Predictions ─────────────────────── -->
+  <div id="tab-predictions" class="tab-panel">
+
+    <div class="predictions-wrap">
+      <div class="predictions-header">
+        <div>
+          <strong>20 Apostas Geradas</strong>
+          <span style="font-size:0.8rem;color:var(--text2);margin-left:10px" id="pred-meta"></span>
+        </div>
+        <div class="export-btns">
+          <button class="btn-csv" onclick="exportCSV()">⬇ CSV</button>
+          <button class="gen-btn" id="regen-btn" onclick="regeneratePredictions()">↻ Regenerar</button>
+        </div>
+      </div>
+      <div id="predictions-list">
+        <div class="loading-overlay"><span class="spinner"></span> Gerando apostas...</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ─── TAB: History ─────────────────────────── -->
+  <div id="tab-history" class="tab-panel">
+    <div class="section-title">📜 Últimas Previsões</div>
+    <div id="history-list">
+      <div class="loading-overlay"><span class="spinner"></span> Carregando...</div>
+    </div>
+  </div>
+
+  <!-- ─── TAB: Wolfram ─────────────────────────── -->
+  <div id="tab-wolfram" class="tab-panel">
+    <div class="section-title">🔬 Análise Wolfram Alpha</div>
+    <div id="wolfram-container">
+      <div class="loading-overlay"><span class="spinner"></span> Consultando Wolfram Alpha...</div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Toast container -->
+<div class="toast-container" id="toasts"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="/static/app.js"></script>
+</body>
+</html>
