@@ -18,6 +18,8 @@ logger = logging.getLogger(__name__)
 
 _analysis_cache: dict = {}
 _prediction_cache: dict | None = None
+_last_manual_sync: float = 0.0
+SYNC_COOLDOWN = 300  # 5 minutes between manual syncs
 
 
 @asynccontextmanager
@@ -28,7 +30,10 @@ async def lifespan(app: FastAPI):
         headers={"User-Agent": "Mozilla/5.0 (compatible; LotofacilBot/1.0)"},
         follow_redirects=True,
     )
-    asyncio.create_task(_background_sync(app.state.http_client))
+    # Only sync on startup if DB is empty — routine updates come from the cron worker
+    count = await database.count_draws()
+    if count == 0:
+        asyncio.create_task(_background_sync(app.state.http_client))
     yield
     await app.state.http_client.aclose()
 
@@ -75,12 +80,19 @@ async def health():
 
 @app.post("/api/sync")
 async def sync():
+    import time
+    global _last_manual_sync
+    elapsed = time.time() - _last_manual_sync
+    if elapsed < SYNC_COOLDOWN:
+        wait = int(SYNC_COOLDOWN - elapsed)
+        raise HTTPException(status_code=429, detail=f"Aguarde {wait}s antes de sincronizar novamente.")
     try:
         new, latest = await data_collector.sync_draws(app.state.http_client)
         total = await database.count_draws()
         _analysis_cache.clear()
         global _prediction_cache
         _prediction_cache = None
+        _last_manual_sync = time.time()
         return {"new_draws": new, "total_draws": total, "latest_concurso": latest}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

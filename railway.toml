@@ -7,3 +7,7 @@ healthcheckPath = "/api/health"
 healthcheckTimeout = 30
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
+
+# Cron job: roda às 23h nos dias de sorteio (Seg/Qua/Sex, horário de Brasília = UTC-3 → 02h UTC)
+# Para adicionar no Railway: Settings → Cron Jobs → "0 2 * * 2,4,6"
+# Comando: python -m backend.cron_worker
