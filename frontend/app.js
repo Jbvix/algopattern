@@ -571,24 +571,5 @@ function showToast(msg, type = 'info') {
   setTimeout(() => toast.remove(), 4000);
 }
 
-// ─── Disclaimer ───────────────────────────────────────────
-function closeDisclaimer() {
-  document.getElementById('disclaimer-modal').style.display = 'none';
-  try { localStorage.setItem('disclaimer_accepted', '1'); } catch (_) {}
-}
-
-function maybeShowDisclaimer() {
-  try {
-    if (!localStorage.getItem('disclaimer_accepted')) {
-      document.getElementById('disclaimer-modal').style.display = 'flex';
-    }
-  } catch (_) {
-    document.getElementById('disclaimer-modal').style.display = 'flex';
-  }
-}
-
 // ─── Start ────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  maybeShowDisclaimer();
-  init();
-});
+document.addEventListener('DOMContentLoaded', init);
