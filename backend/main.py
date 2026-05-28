@@ -44,9 +44,10 @@ async def _background_sync(client: httpx.AsyncClient) -> None:
 
 app = FastAPI(title="Lotofácil Predictor", lifespan=lifespan)
 
+_allowed_origins = os.environ.get("ALLOWED_ORIGINS", "*").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_allowed_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )

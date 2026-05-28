@@ -1,6 +1,7 @@
 'use strict';
 
-const API = '';
+// RAILWAY_URL is replaced at build time by Netlify env var, or uses proxy redirect
+const API = typeof RAILWAY_BACKEND_URL !== 'undefined' ? RAILWAY_BACKEND_URL : '';
 let statsData = null;
 let predsData = null;
 const charts = {};
